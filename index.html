@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Fake Bill of Truth</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a08;
+    --gold: #b8943f;
+    --gold-light: #d4af5a;
+    --gold-dim: rgba(184,148,63,0.15);
+    --cream: #f0e8d5;
+    --cream-dim: rgba(240,232,213,0.6);
+    --red: #8b1a1a;
+    --green-dark: #1a2e1a;
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  body {
+    font-family: 'Libre Baskerville', serif;
+    color: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Noise grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+  }
+
+  /* Radial glow center */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(184,148,63,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+  }
+
+  .screen.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ============ SCREEN 1 ============ */
+
+  .landing {
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    position: relative;
+  }
+
+  /* Top rule */
+  .rule {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: rise 0.8s ease 0.1s forwards;
+  }
+
+  .rule-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .rule-diamond {
+    font-size: 8px;
+    color: var(--gold);
+  }
+
+  .eyebrow {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    opacity: 0;
+    animation: rise 0.8s ease 0.2s forwards;
+    margin-bottom: 16px;
+  }
+
+  .main-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 900;
+    font-size: clamp(34px, 10vw, 48px);
+    line-height: 1.05;
+    color: var(--cream);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0;
+    animation: rise 0.9s ease 0.35s forwards;
+    margin-bottom: 6px;
+  }
+
+  .main-title span {
+    display: block;
+    color: var(--gold-light);
+    font-size: clamp(22px, 7vw, 32px);
+    letter-spacing: 6px;
+  }
+
+  .ornament {
+    font-size: 20px;
+    color: var(--gold);
+    opacity: 0;
+    animation: rise 0.8s ease 0.5s forwards;
+    margin: 20px 0;
+    letter-spacing: 8px;
+  }
+
+  .tagline-box {
+    border-top: 1px solid rgba(184,148,63,0.25);
+    border-bottom: 1px solid rgba(184,148,63,0.25);
+    padding: 16px 8px;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: rise 0.8s ease 0.65s forwards;
+  }
+
+  .tagline-text {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--cream-dim);
+    line-height: 1.6;
+  }
+
+  .cta-btn {
+    width: 100%;
+    padding: 18px 24px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold-light);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 5px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    animation: rise 0.8s ease 0.8s forwards;
+    transition: all 0.3s ease;
+  }
+
+  .cta-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: -1;
+  }
+
+  .cta-btn:hover::before, .cta-btn:active::before {
+    transform: translateX(0);
+  }
+
+  .cta-btn:hover, .cta-btn:active {
+    color: var(--bg);
+  }
+
+  .footer-note {
+    margin-top: 20px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: rgba(184,148,63,0.3);
+    font-family: 'Bebas Neue', sans-serif;
+    opacity: 0;
+    animation: rise 0.8s ease 1s forwards;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ SCREEN 2 — TRUTH ============ */
+
+  .truth-wrap {
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+
+  .truth-eyebrow {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 32px;
+  }
+
+  .truth-body {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(16px, 5vw, 21px);
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--cream);
+    opacity: 0;
+    /* TRUE 6 second fade — using JS to set this inline after mount */
+    margin-bottom: 48px;
+    padding: 0 4px;
+  }
+
+  .question-block {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 1s ease, transform 1s ease;
+    pointer-events: none;
+  }
+
+  .question-block.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+
+  .question-label {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--cream-dim);
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .yn-row {
+    display: flex;
+    gap: 16px;
+  }
+
+  .yn-btn {
+    flex: 1;
+    padding: 15px;
+    background: transparent;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 1px solid;
+  }
+
+  .yn-btn:active { transform: scale(0.96); }
+
+  .yn-yes {
+    border-color: var(--red);
+    color: #d44;
+  }
+  .yn-yes:hover, .yn-yes:active {
+    background: var(--red);
+    color: var(--cream);
+  }
+
+  .yn-no {
+    border-color: rgba(184,148,63,0.5);
+    color: var(--gold);
+  }
+  .yn-no:hover, .yn-no:active {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  /* ============ SCREEN 3 — RESPONSE ============ */
+
+  .response-wrap {
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+  }
+
+  .response-stamp {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 8px;
+    border: 3px solid currentColor;
+    display: inline-block;
+    padding: 6px 20px;
+    transform: rotate(-6deg);
+    margin-bottom: 28px;
+  }
+
+  .stamp-yes { color: #d44; border-color: #d44; }
+  .stamp-no  { color: #6c6; border-color: #6c6; }
+
+  .response-rule {
+    width: 48px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto 24px;
+    opacity: 0.3;
+  }
+
+  .response-body {
+    font-family: 'Libre Baskerville', serif;
+    font-size: clamp(15px, 4.5vw, 18px);
+    line-height: 1.7;
+    padding: 0 4px;
+  }
+
+  .response-body.yes { color: #f08080; }
+  .response-body.no  { color: #90d890; }
+
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: Landing -->
+<div class="screen active" id="s1">
+  <div class="landing">
+    <div class="eyebrow">Congratulations — You Found It</div>
+    <div class="rule"><div class="rule-line"></div><div class="rule-diamond">✦</div><div class="rule-line"></div></div>
+    <h1 class="main-title">The Fake Bill<span>of Truth</span></h1>
+    <div class="ornament">— ✦ —</div>
+    <div class="tagline-box">
+      <div class="tagline-text" id="taglineText"></div>
+    </div>
+    <button class="cta-btn" onclick="showTruth()">SHOW ME THE TRUTH</button>
+    <div class="footer-note">NOT LEGAL TENDER &nbsp;·&nbsp; LEGALLY HONEST</div>
+  </div>
+</div>
+
+<!-- SCREEN 2: Truth -->
+<div class="screen" id="s2">
+  <div class="truth-wrap">
+    <div class="truth-eyebrow">✦ &nbsp; THE TRUTH &nbsp; ✦</div>
+    <div class="truth-body" id="truthBody"></div>
+    <div class="question-block" id="questionBlock">
+      <div class="question-label">Was this offensive?</div>
+      <div class="yn-row">
+        <button class="yn-btn yn-yes" onclick="showResponse(true)">YES</button>
+        <button class="yn-btn yn-no" onclick="showResponse(false)">NO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: Response -->
+<div class="screen" id="s3">
+  <div class="response-wrap">
+    <div class="response-stamp" id="rStamp"></div>
+    <div class="response-rule"></div>
+    <div class="response-body" id="rBody"></div>
+  </div>
+</div>
+
+<script>
+  const taglines = [
+    "This bill is fake. But it only tells the truth.",
+    "Counterfeit currency. Genuine truth.",
+    "Worth $0. Priceless information.",
+    "Not legal tender. Legally honest.",
+    "Rejected by banks. Accepted by the universe.",
+    "Zero dollars. Zero lies.",
+    "The money is fake. The wisdom is real.",
+    "Printed in deception. Filled with fact.",
+    "No cash value. Unlimited truth value.",
+    "The Fed said no. The cosmos said yes.",
+    "Spend it nowhere. Know it everywhere.",
+    "Counterfeit by design. Honest by nature.",
+    "This will not pay your rent. It will pay your mind.",
+    "Fake to the touch. True to the core.",
+    "Invalid currency. Valid truth."
+  ];
+
+  const truths = [
+    "Liberals actually believe there are more than two genders. Absolute fucking idiots.",
+    "Liberals convinced themselves beef is killing the planet. Go eat a whole damn cow.",
+    "Only a liberal would think a man can become a woman. Chop it off and it's still a man.",
+    "Liberals ruined the bathroom. There were only ever two you morons.",
+    "Somehow liberals think the government will save them. Those dipshits can't fix a pothole.",
+    "Liberals woke up and decided diesel is evil. Go buy the biggest damn truck you can find.",
+    "Leave it to liberals to think spanking is abuse. Look at these soft little shits now.",
+    "Liberals honestly believe feelings are facts. Cry harder you big baby it still won't be true.",
+    "Only a liberal would think hunting is murder. Go shoot something and eat it you idiot.",
+    "Liberals convinced themselves coal is evil. Shut the hell up and enjoy your heated house.",
+    "Liberals are out here believing men and women are the same. Delusional little bastards.",
+    "Liberals turned a participation trophy into a human right. It's plastic garbage you moron.",
+    "Only a liberal would drink oat milk and call it food. Go drink a real glass of milk you weirdo.",
+    "Liberals honestly believe protesting pays the bills. Get a real damn job you lazy bastard.",
+    "Leave it to liberals to think the border should be open. Unlock your front door tonight dumbass.",
+    "Somehow liberals think crying fixes things. It has never fixed a single damn thing you baby.",
+    "Liberals convinced themselves the government owes them a living. Freeloading little shits.",
+    "Liberals actually believe electric cars saved the planet. Go fill up your tank and smile asshole.",
+    "Liberals destroyed masculinity and called it progress. Go thank a real man you idiot.",
+    "Only a liberal would think bacon is cruel. Eat a whole pound you miserable little weirdo.",
+    "Liberals woke up and decided discipline is abuse. Their kids are absolute little nightmares.",
+    "Somehow liberals think winning doesn't matter. That's what losers say you dipshit.",
+    "Liberals are out here letting their kids pick their own gender. What the hell is wrong with you.",
+    "Liberals actually believe hard work is a privilege. Get off your ass and find out you lazy shit.",
+    "Leave it to liberals to think free speech needs limits. Shut the hell up about shutting up.",
+    "Liberals honestly believe working hard is oppression. Get a grip and get a damn job.",
+    "Liberals destroyed common sense and called it progress. Useless bastards.",
+    "Somehow liberals think the world owes them an apology. The world doesn't give a single shit.",
+    "Only a liberal would call a cold beer toxic masculinity. Crack one open you absolute legend.",
+    "Liberals think this bill is offensive. Too bad it's just the truth you sensitive little shit."
+  ];
+
+  const yesPool = [
+    "Congrats. You just failed a vibe check from a piece of paper. Go find your safe space.",
+    "A fake dollar bill just triggered you. Let that sink in.",
+    "You were offended by the truth. The truth doesn't care.",
+    "Triggered by a bill someone found on the ground. Incredible.",
+    "Your safe space called. It misses you.",
+    "Somewhere a liberal is crying. That liberal is you."
+  ];
+
+  const noPool = [
+    "Good. Now drop this bill somewhere a liberal will find it. Tonight you sleep like a champion.",
+    "You passed. Now put this bill back on the ground and let it do its work.",
+    "A liberal is going to find this bill someday. That's the whole point. Sleep well.",
+    "Not offended. You're one of the good ones. Drop this bill somewhere and walk away.",
+    "Perfect. Leave this bill somewhere public. A liberal will find it. Justice will be served.",
+    "Not offended. Drop this bill somewhere public and go to bed knowing a liberal will find it."
+  ];
+
+  function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function go(fromId, toId) {
+    document.getElementById(fromId).classList.remove('active');
+    setTimeout(() => document.getElementById(toId).classList.add('active'), 700);
+  }
+
+  // Set tagline
+  document.getElementById('taglineText').textContent = '"' + pick(taglines) + '"';
+
+  function showTruth() {
+    const tb = document.getElementById('truthBody');
+    tb.textContent = pick(truths);
+    tb.style.opacity = '0';
+    tb.style.transition = 'none';
+    document.getElementById('questionBlock').classList.remove('show');
+
+    go('s1', 's2');
+
+    // After screen transition settles, start the TRUE 6-second fade
+    setTimeout(() => {
+      tb.style.transition = 'opacity 6s ease';
+      tb.style.opacity = '1';
+    }, 900);
+
+    // Question appears 3 seconds after fade starts = 900 + 3000
+    setTimeout(() => {
+      document.getElementById('questionBlock').classList.add('show');
+    }, 3900);
+  }
+
+  function showResponse(yes) {
+    const stamp = document.getElementById('rStamp');
+    const body  = document.getElementById('rBody');
+
+    if (yes) {
+      stamp.textContent = 'TRIGGERED';
+      stamp.className = 'response-stamp stamp-yes';
+      body.textContent = pick(yesPool);
+      body.className = 'response-body yes';
+    } else {
+      stamp.textContent = 'LEGEND';
+      stamp.className = 'response-stamp stamp-no';
+      body.textContent = pick(noPool);
+      body.className = 'response-body no';
+    }
+
+    go('s2', 's3');
+  }
+</script>
+</body>
+</html>
